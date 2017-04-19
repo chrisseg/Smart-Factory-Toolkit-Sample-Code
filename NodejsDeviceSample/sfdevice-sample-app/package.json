@@ -1,0 +1,11 @@
+{
+  "name": "sfdevice-sample-app",
+  "version": "1.0.0",
+  "description": "Device sample application for Smart Factory Tool Kit",
+  "main": "app.js",
+  "author": "Microsoft IoT Innovation Center",
+  "license": "MIT",
+  "dependencies": {
+    "smartfactory-device-sdk": "0.0.1"
+  }
+}
