@@ -1,0 +1,16 @@
+[
+  {
+    "MessageName": "Message101",
+    "MessageId": 73,
+    "MessagePayload": {
+      "companyId": "numeric || mandatory || 69",
+      "msgTimestamp": "datetime || mandatory || yyyy-MM-ddTHH:mm:ss",
+      "equipmentId": "string || mandatory || Equipment101",
+      "equipmentRunStatus": "numeric || mandatory || 0, 1, -1",
+      "Speed": "numeric || mandatory",
+      "SerialNumber": "string || mandatory",
+      "Rpm": "numeric || mandatory",
+      "HealthStatus": "string || mandatory"
+    }
+  }
+]

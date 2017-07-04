@@ -1,11 +1,16 @@
-﻿using Microsoft.SmartFactory.Devices.Client;
-using Microsoft.Azure.Devices.Client;
+﻿using Microsoft.Azure.Devices.Client;
+using Microsoft.Azure.Devices.Shared;
+using Microsoft.CDS.Devices.Client;
+using Microsoft.CDS.Devices.Client.Enums;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.SmartFactory.Devices.Client.Enums;
+
 
 namespace CSharpDeviceSample
 {
@@ -31,15 +36,20 @@ namespace CSharpDeviceSample
                 /* initialzation */
                 _sfDeviceClient.Initial().Wait();
 
-                /* Async Task for the telemetry data sending */
+                /* Setup the Customer properties callback */
+                _sfDeviceClient.SetCustomerPropertiesUpdateCallbackAsync(OnDesiredCustomerPropertiesChanged).Wait();
+
+                /* Async Task for getting device twin */
+                GetTwinPropertiesAsync();
+
+                /* Async Task for sending telemetry data */
                 SendTelemetryBySchemaAsync();
 
-                /* Async Task for the Cloud to Device message receiving */
+                /* Async Task for receiving Cloud to Device message */
                 ReceiveCloudToDeviceMessageAsync();
 
-                /* Async Task for the file upload */
-                UploadFlieAsync();
-
+                /* Async Task for file uploading */
+                //UploadFlieAsync();
             }
             catch (Exception ex)
             {
@@ -54,21 +64,80 @@ namespace CSharpDeviceSample
             Console.ReadLine();
         }
 
+        static async Task OnDesiredCustomerPropertiesChanged(JObject desiredProperties)
+        {
+            Console.WriteLine("Desired Customer Property Change:");
+
+            if (desiredProperties == null)
+            {
+                Console.WriteLine("desiredProperties: null");
+                return;
+            }
+
+            JObject reportedCustomerProperties = new JObject();
+            foreach (JProperty jp in desiredProperties.Properties())
+            {
+                processDesiredCustomerProperty(jp.Name, jp.Value);
+
+                // Update the reported customer property
+                reportedCustomerProperties.Add(jp.Name, jp.Value);
+            }
+
+            // Add some read-only properties
+            reportedCustomerProperties.Add("BatteryCapacity", 50);// Read-only property
+            reportedCustomerProperties.Add("ApplicationVersion", "1.2.3");// Read-only property
+
+            await UpdateReportedCustomerPropertiesAsync(reportedCustomerProperties);
+        }
+
+        static void processDesiredCustomerProperty(string key, dynamic value)
+        {
+            Console.WriteLine("==== " + key + " - " + value);
+
+            /* Do some customer codes for these changes */
+
+
+
+
+        }
+
+        static async Task UpdateReportedCustomerPropertiesAsync(JObject reportedProperties)
+        {
+            await _sfDeviceClient.UpdateReportedCustomerPropertiesAsync(reportedProperties);
+        }
+
+        static async void GetTwinPropertiesAsync()
+        {
+            /* Get Twin */
+            Twin twin = await _sfDeviceClient.GetTwinAsync();
+            if (twin != null)
+            {
+                Console.WriteLine("-- twin: {0}", JsonConvert.SerializeObject(twin));
+
+                /* Get Desired Customer Properties */
+                JObject desiredCustomerProperties = await _sfDeviceClient.GetDesiredCustomerPropertiesAsync();
+                if (desiredCustomerProperties != null)
+                    Console.WriteLine("---- Desired Customer Properties: {0}", desiredCustomerProperties.ToString());
+
+                /* Get Reported Customer Properties */
+                JObject reportedCustomerProperties = await _sfDeviceClient.GetReportedCustomerPropertiesAsync();
+                if (reportedCustomerProperties != null)
+                    Console.WriteLine("---- Reported Customer Properties: {0}", reportedCustomerProperties.ToString());
+            }
+        }
+
         static async void SendTelemetryBySchemaAsync()
         {
-            int companyId = [Please put your COMPANY ID here...]; // You can get the company id from JSON template
+            /* For exsample, this is extracted by iotdevicedemo101-MessageTemplate.json */
+            int companyId = 69; // <Put your company id>
+            string equipmentId = "Equipment101"; // <Put your equipment id>
+            int messageCatalogId = 73;// <Put your message catalog id>
 
-            int messageCount = 5;
+            int messageCount = 1000;
             try
             {
                 while (messageCount > 0)
                 {
-                    Random rand = new Random();
-                    int seed = rand.Next() % 2;
-
-                    string equipmentId = [Please put your EQUIPMENT ID here...]; // As an example, one or more equipments can be bound in the one device
-                    int messageCatalogId = [Please put your MESSAGE CATALOG ID here...]; // As an example, specify the message ID what you want to sent
-
                     string deviceMessage = getSampleDeviceMessage(companyId, equipmentId, messageCatalogId);
 
                     await _sfDeviceClient.SendEventAsyncWithRetry(messageCatalogId, deviceMessage);
@@ -85,30 +154,6 @@ namespace CSharpDeviceSample
             }
         }
 
-        static string getSampleEquipmentId(int seed)
-        {
-            switch (seed)
-            {
-                case 0:
-                    return "MachineTool-2f";
-                case 1:
-                default:
-                    return "InjectionMachine-2f";
-            }
-        }
-
-        static int getSampleMessageCataId(int seed)
-        {
-            switch (seed)
-            {
-                case 0:
-                    return 45;// MachineTool-TypeA
-                case 1:
-                default:
-                    return 46; // InjectionMachine-TypeA
-            }
-        }
-
         static string getSampleDeviceMessage(int companyId, string equipmentId, int messageCatalogId)
         {
             JObject deviceMessage = new JObject();
@@ -117,46 +162,15 @@ namespace CSharpDeviceSample
             deviceMessage.Add("equipmentId", equipmentId);
             deviceMessage.Add("equipmentRunStatus", (int)EquipmentRunStatus.Run);
 
-            switch (messageCatalogId)
-            {
-                case 46:
-                    deviceMessage.Add("orderNumber", "ORDER_123456");
-                    deviceMessage.Add("RPM-Expected", 5400);
-                    Random rand = new Random();
-                    int seed = rand.Next() % 101;
-                    deviceMessage.Add("RPM-Actual", 5350 + seed);
-                    deviceMessage.Add("CoolingSystemWarning", false);// Optional, it can be ignored
-                    break;
-                case 45:
-                    deviceMessage.Add("machineOnOff", true);
-                    deviceMessage.Add("orderId", "ID12345");
-                    deviceMessage.Add("temperature", 23.1);
-                    deviceMessage.Add("RPM", 7200);
-                    deviceMessage.Add("bootingInfo_startTime", DateTime.Now.AddMinutes(-10).ToString("yyyy-MM-ddTHH:mm:ss"));
-                    deviceMessage.Add("bootingInfo_endTime", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"));
-                    deviceMessage.Add("bootingInfo_materialStock", 999999);
-                    break;
-            }
+            /* Put your customized messages here
+             * For exsample, this is extracted by iotdevicedemo101-MessageTemplate.json
+            */
+            deviceMessage.Add("Speed", new Random().Next() % 30);
+            deviceMessage.Add("SerialNumber", "SN1234567890");
+            deviceMessage.Add("Rpm", new Random().Next() % 100 + 5400);
+            deviceMessage.Add("HealthStatus", "OK");   //OK or Stopped
 
             return deviceMessage.ToString();
-
-        }
-
-        static async void ReceiveCloudToDeviceMessageAsync()
-        {
-            while (true)
-            {
-                Message receivedMessage = await _sfDeviceClient.ReceiveAsync();
-                if (receivedMessage == null) continue;// It returns null after a specifiable timeout period (in this case, the default of one minute is used)
-
-                string msg = Encoding.ASCII.GetString(receivedMessage.GetBytes());
-
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.WriteLine("Received message: {0}\n", msg);
-                Console.ResetColor();
-
-                await _sfDeviceClient.CompleteAsync(receivedMessage);
-            }
         }
 
         static async void UploadFlieAsync()
@@ -175,6 +189,23 @@ namespace CSharpDeviceSample
             catch (Exception ex)
             {
                 Console.WriteLine("UploadFlieAsync Exception: {0}", ex.Message.ToString());
+            }
+        }
+
+        static async void ReceiveCloudToDeviceMessageAsync()
+        {
+            while (true)
+            {
+                Message receivedMessage = await _sfDeviceClient.ReceiveAsync();
+                if (receivedMessage == null) continue;// It returns null after a specifiable timeout period (in this case, the default of one minute is used)
+
+                string msg = Encoding.ASCII.GetString(receivedMessage.GetBytes());
+
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Received message: {0}\n", msg);
+                Console.ResetColor();
+
+                await _sfDeviceClient.CompleteAsync(receivedMessage);
             }
         }
     }
