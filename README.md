@@ -1,5 +1,5 @@
-# Smart Factory Toolkit Device Sample
-This repository references Microsoft Smart Factory Device Sample codes. Device samples enable you client devices connect to Smart Factory Toolkit.
+# Connected Device Studio Device Sample
+This repository references Microsoft Connected Device Studio(CDS) Device Sample codes. Device samples enable you client devices connect to CDS.
 
 ## Sample Codes
 This repository contains the following:

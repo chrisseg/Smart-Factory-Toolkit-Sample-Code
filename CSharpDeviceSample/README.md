@@ -1,2 +1,2 @@
-# SmartFactoryDeviceSample
-C# Device Sample for Smart Factory Toolkit
+# CDS Device Sample
+C# Device Sample for Connected Device Studio
