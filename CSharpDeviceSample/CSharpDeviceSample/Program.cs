@@ -1,16 +1,15 @@
-﻿using Microsoft.Azure.Devices.Client;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.CDS.Devices.Client;
 using Microsoft.CDS.Devices.Client.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace CSharpDeviceSample
 {
