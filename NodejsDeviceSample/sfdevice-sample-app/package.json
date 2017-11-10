@@ -1,11 +1,11 @@
 {
-  "name": "sfdevice-sample-app",
+  "name": "cds-nodejs-console-app",
   "version": "1.0.0",
-  "description": "Device sample application for Smart Factory Tool Kit",
+  "description": "CDS Node.js Console App",
   "main": "app.js",
   "author": "Microsoft IoT Innovation Center",
   "license": "MIT",
   "dependencies": {
-    "smartfactory-device-sdk": "0.0.1"
+    "cds-device-sdk": "^1.0.1"
   }
 }
