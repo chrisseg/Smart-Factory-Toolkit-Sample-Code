@@ -1,0 +1,16 @@
+[
+  {
+    "MessageName": "Message102",
+    "MessageId": 79,
+    "MessagePayload": {
+      "companyId": "numeric || mandatory || 169",
+      "msgTimestamp": "datetime || mandatory || yyyy-MM-ddTHH:mm:ss",
+      "equipmentId": "string || mandatory || Equipment303",
+      "equipmentRunStatus": "numeric || mandatory || 0, 1, -1",
+      "MachineA_Color": "string || option",
+      "MachineA_StartTime": "datetime || option || yyyy-MM-ddTHH:mm:ss",
+      "MachineB_Color": "string || option",
+      "MachineB_StartTime": "datetime || option || yyyy-MM-ddTHH:mm:ss"
+    }
+  }
+]

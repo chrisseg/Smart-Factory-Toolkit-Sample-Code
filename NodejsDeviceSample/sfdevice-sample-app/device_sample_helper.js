@@ -24,7 +24,7 @@ function convertLocalTimeFormat(now) {
 
 module.exports = {
     getCompanyId: function getCompanyId() {
-        return 69;// Please put your COMPANY ID here
+        return 169;// Please put your COMPANY ID here
     },
     getSampleEquipmentId: function getSampleEquipmentId() {
         return 'Equipment303';// Please put your EQUIPMENT ID here

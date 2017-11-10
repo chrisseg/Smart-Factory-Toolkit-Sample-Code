@@ -30,6 +30,7 @@
   <ItemGroup>
     <Compile Include="app.js" />
     <Compile Include="device_sample_helper.js" />
+    <Content Include="iotdevicedemo303.json" />
     <Content Include="package.json" />
     <Content Include="README.md" />
   </ItemGroup>
